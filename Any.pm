@@ -1,30 +1,27 @@
 package Clone::Any;
 
 use strict;
-use vars qw($VERSION @EXPORT_OK);
 
-$VERSION = 1.00;
+use Devel::UseAnyFunc '-isasubclass';
 
-@EXPORT_OK = qw( clone ); # lazy Exporter
-sub import { require Exporter and &_clone_any_init and goto &Exporter::import } 
+use vars qw($VERSION $EXPORT @SOURCES);
 
-sub _clone_any_candidates {
-  'Clone' => 'clone',
-  'Clone::PP' => 'clone',
-  'Storable' => sub { Storable::dclone( shift ) },
+BEGIN {
+  $VERSION = 1.01;
+  
+  $EXPORT = 'clone';
+  @SOURCES = (
+    'Clone'	=> 'clone',
+    'Util'	=> 'clone',
+    'Storable'	=> 'dclone',
+    'Clone::PP'	=> 'clone',
+    'Class::MakeMethods::Utility::Ref' => 'ref_clone',
+  );
 }
 
-sub _clone_any_init {
-  my @candidates = my %candidates = _clone_any_candidates();
-  while ( my ($class, $function) = splice @candidates, 0, 2 ) {
-    (my $pm = "$class.pm") =~ s{::}{/}g;
-    # warn "Require $pm\n";
-    eval { require $pm };
-    next if ( $@ );
-    # warn "Installing $class\::$function\n";
-    return *clone = ref($function) ? $function : \&{"$class\::$function"};
-  }
-  die "Can't locate any Clone module (" . join(', ', keys %candidates) . ")";
+sub import { 
+  my ( $self, $name, @sources ) = @_;
+  $self->SUPER::import( $name || $EXPORT, @sources ? @sources : @SOURCES );
 }
 
 1;
@@ -50,32 +47,48 @@ Clone::Any - Select an available recursive-copy function
 =head1 DESCRIPTION
 
 This module checks for several different modules which can provide
-a clone() method which makes recursive copies of nested hash, array,
-scalar and reference types, including tied variables and objects.
+a clone() function to make deep copies of Perl data structures.
 
-Depending on which modules are available, this will either use Clone, Clone::PP or Storable.
+=head2 Clone Interface
+
+The clone function makes recursive copies of nested hash, array,
+scalar and reference types, including tied variables and objects.
 
 The clone() function takes a scalar argument to copy. To duplicate
 lists, arrays or hashes, pass them in by reference. e.g.
-    
-  my $copy = clone (\@array);
-  # or
-  my %copy = %{ clone (\%hash) };  
+
+  my $copy = clone(\@array);    my @copy = @{ clone(\@array) };
+  my $copy = clone(\%hash);     my %copy = %{ clone(\%hash) };
+
+=head2 Multiple Implementations
+
+Depending on which modules are available, this may load Clone, Clone::PP,
+Util, Storable, or Class::MakeMethods::Utility::Ref. 
+If none of those modules are available, it will C<croak>.
 
 =head1 SEE ALSO
 
-For various implementations, see L<Clone>, L<Clone::PP> and <Storable>.
+For the various implementations, see L<Clone>, L<Clone::PP>, L<Storable>, 
+L<Util>, and L<Class::MakeMethods::Utility::Ref>.
+
+See L<Devel::UseAnyFunc> for the underlying module loader and exporter functionality.
 
 =head1 CREDITS AND COPYRIGHT
 
-Developed by Matthew Simon Cavalletto, simonm@cavalletto.org. 
-Mode modules from Evolution Softworks are available at www.evoscript.org.
+Developed by Matthew Simon Cavalletto at Evolution Softworks. 
+More free Perl software is available at C<www.evoscript.org>.
+
+You may contact the author directly at C<evo@cpan.org> or C<simonm@cavalletto.org>. 
+
+To report bugs via the CPAN web tracking system, go to 
+C<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Clone-Any> or send mail 
+to C<Dist=Clone-Any#rt.cpan.org>, replacing C<#> with C<@>.
+
 Copyright 2003 Matthew Simon Cavalletto. 
 
-Interface based on Clone by Ray Finch, rdf@cpan.org. 
-Portions Copyright 2001 Ray Finch.
+Orignally inspired by Clone by Ray Finch with contributions from chocolateboy.
+Portions Copyright 2001 Ray Finch. Portions Copyright 2001 chocolateboy. 
 
-This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl itself.
+You may use, modify, and distribute this software under the same terms as Perl.
 
 =cut

@@ -61,8 +61,8 @@ my $a = Test::Hash->new(
 
 $a->{a} = $a;
 
-my $b = $a->clone(0);
-my $c = $a->clone(3);
+my $b = $a->clone;
+my $c = $a->clone;
 
 $a->{level} == $b->{level} ? ok : not_ok;
 

@@ -47,8 +47,8 @@ my $a = Test::Array->new(
       ],
     ],
   );
-my $b = $a->clone(0);
-my $c = $a->clone(2);
+my $b = $a->clone;
+my $c = $a->clone;
 
 # TEST 2
 $b->[1][0] eq 'two' ? ok : not_ok;

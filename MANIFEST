@@ -10,3 +10,5 @@ t/06refcnt.t
 t/dclone.t
 t/dump.pl
 t/tied.pl
+benchmark.pl
+README
